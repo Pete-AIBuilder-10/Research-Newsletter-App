@@ -29,6 +29,8 @@ TOPICS = [
 ]
 
 MAX_ARTICLES = 5  # Max number of articles processed per run
+MIN_SUMMARY_LENGTH = 300  # Minimum length of clean summaries to accept
+
 # ------------------------------------------
 
 # -------------- APP START -----------------
@@ -58,18 +60,21 @@ if generate_button and selected_topics:
                 title = entry.title
                 link = entry.link
                 raw_summary = getattr(entry, 'summary', "No summary available.")
-                summary = BeautifulSoup(raw_summary, "html.parser").get_text()  # CLEANING HTML OUT
+                summary = BeautifulSoup(raw_summary, "html.parser").get_text().strip()
 
-                # Match if any selected topic appears
+                # New length filter
+                if len(summary) < MIN_SUMMARY_LENGTH:
+                    continue  # Skip articles with too-short summaries
+
                 if any(keyword in title.lower() or keyword in summary.lower() for keyword in topic_keywords):
                     articles.append((title, link, summary))
 
         if not articles:
-            st.error("No articles found for selected topics. Try expanding your selection!")
+            st.error("No high-quality articles found for selected topics. Try expanding your selection!")
             st.stop()
 
         articles = articles[:MAX_ARTICLES]
-        st.success(f"Found {len(articles)} relevant articles.")
+        st.success(f"Found {len(articles)} strong articles.")
 
         # -------------- DYNAMIC TITLE -------------------
         combined_titles = "\n".join([title for title, link, summary in articles])
