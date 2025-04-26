@@ -3,6 +3,7 @@ import streamlit as st
 import openai
 import feedparser
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 # -------------- CONFIG -------------------
 openai.api_key = os.getenv("OPENAI_API_KEY")  # Ensure your API key is set in environment
@@ -56,7 +57,8 @@ if generate_button and selected_topics:
             for entry in feed.entries:
                 title = entry.title
                 link = entry.link
-                summary = getattr(entry, 'summary', "No summary available.")
+                raw_summary = getattr(entry, 'summary', "No summary available.")
+                summary = BeautifulSoup(raw_summary, "html.parser").get_text()  # CLEANING HTML OUT
 
                 # Match if any selected topic appears
                 if any(keyword in title.lower() or keyword in summary.lower() for keyword in topic_keywords):
